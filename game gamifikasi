@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Petualangan Energi - Tumbuhkan Tanamanmu!</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: linear-gradient(180deg, #87CEEB 0%, #B0E0E6 40%, #E0F6FF 100%);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    overflow-x: hidden;
+    user-select: none;
+  }
+  #app {
+    width: 100%;
+    max-width: 420px;
+    min-height: 100vh;
+    background: linear-gradient(180deg, #87CEEB 0%, #B0E0E6 40%, #E0F6FF 100%);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 0 30px rgba(0,0,0,0.1);
+  }
+
+  /* ===== HEADER ===== */
+  .header {
+    padding: 12px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(255,255,255,0.7);
+    backdrop-filter: blur(10px);
+    border-bottom: 2px solid rgba(76,175,80,0.3);
+  }
+  .header h1 {
+    font-size: 16px;
+    color: #2E7D32;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .header h1 span { font-size: 20px; }
+  .badge-count {
+    background: #FFD54F;
+    color: #5D4037;
+    font-size: 13px;
+    font-weight: 800;
+    padding: 6px 12px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    box-shadow: 0 2px 8px rgba(255,213,79,0.5);
+  }
+
+  /* ===== GARDEN CANVAS ===== */
+  .garden-wrap {
+    position: relative;
+    width: 100%;
+    height: 280px;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+  #gardenCanvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+  .stage-label {
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(255,255,255,0.85);
+    padding: 4px 16px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #33691E;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    z-index: 2;
+  }
+
+  /* ===== PROGRESS BAR ===== */
+  .progress-wrap {
+    padding: 10px 16px 6px;
+    background: rgba(255,255,255,0.5);
+  }
+  .progress-info {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    font-weight: 700;
+    color: #33691E;
+    margin-bottom: 4px;
+  }
+  .progress-bar {
+    width: 100%;
+    height: 12px;
+    background: #C8E6C9;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+  }
+  .progress-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #66BB6A, #43A047, #2E7D32);
+    border-radius: 10px;
+    transition: width 0.6s ease;
+    box-shadow: 0 0 8px rgba(76,175,80,0.6);
+  }
+
+  /* ===== QUIZ AREA ===== */
+  .quiz-area {
+    flex: 1;
+    padding: 12px 16px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .question-card {
+    background: rgba(255,255,255,0.95);
+    border-radius: 16px;
+    padding: 16px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+    border: 2px solid rgba(76,175,80,0.2);
+  }
+  .q-number {
+    font-size: 11px;
+    font-weight: 800;
+    color: #66BB6A;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+  }
+  .q-text {
+    font-size: 15px;
+    font-weight: 700;
+    color: #1B5E20;
+    line-height: 1.4;
+  }
+  .options {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .option-btn {
+    background: #F1F8E9;
+    border: 2px solid #C5E1A5;
+    border-radius: 12px;
+    padding: 12px 14px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #33691E;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: inherit;
+  }
+  .option-btn:active { transform: scale(0.97); }
+  .option-btn.correct {
+    background: #C8E6C9;
+    border-color: #43A047;
+    color: #1B5E20;
+  }
+  .option-btn.wrong {
+    background: #FFCDD2;
+    border-color: #E53935;
+    color: #B71C1C;
+    animation: shake 0.4s;
+  }
+  .option-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+  .option-letter {
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    background: #A5D6A7;
+    color: #1B5E20;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 800;
+    flex-shrink: 0;
+  }
+  .option-btn.correct .option-letter { background: #43A047; color: #fff; }
+  .option-btn.wrong .option-letter { background: #E53935; color: #fff; }
+
+  @keyframes shake {
+    0%,100% { transform: translateX(0); }
+    25% { transform: translateX(-6px); }
+    75% { transform: translateX(6px); }
+  }
+
+  /* ===== FEEDBACK ===== */
+  .feedback {
+    text-align: center;
+    font-size: 13px;
+    font-weight: 700;
+    padding: 8px;
+    border-radius: 10px;
+    display: none;
+  }
+  .feedback.show { display: block; }
+  .feedback.good { background: #C8E6C9; color: #1B5E20; }
+  .feedback.bad { background: #FFCDD2; color: #B71C1C; }
+
+  /* ===== MODAL ===== */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    padding: 20px;
+  }
+  .modal-overlay.show { display: flex; }
+  .modal {
+    background: #fff;
+    border-radius: 24px;
+    padding: 28px 22px;
+    width: 100%;
+    max-width: 340px;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+  @keyframes popIn {
+    from { transform: scale(0.7); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+  .modal .emoji { font-size: 56px; margin-bottom: 10px; display: block; }
+  .modal h2 { font-size: 20px; color: #2E7D32; margin-bottom: 8px; }
+  .modal p { font-size: 14px; color: #555; line-height: 1.5; margin-bottom: 16px; }
+  .reward-badge {
+    width: 120px; height: 120px;
+    margin: 0 auto 16px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #FFF9C4, #FFD54F, #FFA000);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 0 6px #FFF9C4, 0 8px 24px rgba(255,160,0,0.5);
+    animation: glow 2s infinite alternate;
+  }
+  @keyframes glow {
+    from { box-shadow: 0 0 0 6px #FFF9C4, 0 8px 24px rgba(255,160,0,0.4); }
+    to { box-shadow: 0 0 0 10px #FFF9C4, 0 8px 32px rgba(255,160,0,0.8); }
+  }
+  .reward-badge .star { font-size: 32px; }
+  .reward-badge .txt { font-size: 9px; font-weight: 800; color: #5D4037; margin-top: 2px; }
+  .btn-primary {
+    background: linear-gradient(135deg, #66BB6A, #43A047);
+    color: #fff;
+    border: none;
+    padding: 14px 28px;
+    border-radius: 14px;
+    font-size: 15px;
+    font-weight: 800;
+    font-family: inherit;
+    cursor: pointer;
+    width: 100%;
+    box-shadow: 0 4px 14px rgba(67,160,71,0.4);
+    transition: transform 0.2s;
+  }
+  .btn-primary:active { transform: scale(0.96); }
+
+  /* ===== BADGE COLLECTION ===== */
+  .badge-collection {
+    padding: 8px 16px 16px;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+    background: rgba(255,255,255,0.4);
+    min-height: 44px;
+  }
+  .badge-collection .label {
+    font-size: 10px;
+    font-weight: 800;
+    color: #558B2F;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .mini-badge {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #FFF9C4, #FFD54F, #FFA000);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    box-shadow: 0 2px 6px rgba(255,160,0,0.4);
+  }
+
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+<div id="app">
+  <!-- HEADER -->
+  <div class="header">
+    <h1><span>🌱</span> Petualangan Energi</h1>
+    <div class="badge-count">🏅 <span id="badgeCount">0</span></div>
+  </div>
+
+  <!-- GARDEN CANVAS -->
+  <div class="garden-wrap">
+    <div class="stage-label" id="stageLabel">Tahap 1: Biji</div>
+    <canvas id="gardenCanvas"></canvas>
+  </div>
+
+  <!-- PROGRESS -->
+  <div class="progress-wrap">
+    <div class="progress-info">
+      <span>Pertumbuhan Tanaman</span>
+      <span id="progressPct">0%</span>
+    </div>
+    <div class="progress-bar">
+      <div class="progress-fill" id="progressFill"></div>
+    </div>
+  </div>
+
+  <!-- QUIZ -->
+  <div class="quiz-area" id="quizArea">
+    <div class="question-card">
+      <div class="q-number" id="qNumber">Soal 1 dari 5</div>
+      <div class="q-text" id="qText">Memuat soal...</div>
+    </div>
+    <div class="options" id="options"></div>
+    <div class="feedback" id="feedback"></div>
+  </div>
+
+  <!-- BADGE COLLECTION -->
+  <div class="badge-collection" id="badgeCollection">
+    <span class="label">Koleksi Badge:</span>
+  </div>
+</div>
+
+<!-- MODAL REWARD -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <span class="emoji" id="modalEmoji">🌸</span>
+    <h2 id="modalTitle">Selamat!</h2>
+    <p id="modalDesc">Tanamanmu berhasil berbunga dan berbuah!</p>
+    <div class="reward-badge">
+      <span class="star">⭐</span>
+      <span class="txt">BADGE<br>TANAMAN</span>
+    </div>
+    <button class="btn-primary" id="modalBtn">Tanam Lagi! 🌱</button>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   DATA SOAL - Sumber Energi IPAS Fase B
+   ============================================================ */
+const QUESTIONS = [
+  {
+    q: "Sumber energi terbesar di Bumi yang membantu tumbuhan berfotosintesis adalah...",
+    options: ["Angin", "Matahari", "Air", "Batu bara"],
+    answer: 1
+  },
+  {
+    q: "Energi yang dihasilkan dari air yang mengalir deras disebut energi...",
+    options: ["Surya", "Angin", "Air", "Panas bumi"],
+    answer: 2
+  },
+  {
+    q: "Kincir angin dapat mengubah energi angin menjadi energi...",
+    options: ["Kimia", "Listrik", "Bunyi", "Cahaya"],
+    answer: 1
+  },
+  {
+    q: "Contoh sumber energi yang dapat diperbarui (tidak akan habis) adalah...",
+    options: ["Minyak bumi", "Batu bara", "Gas alam", "Matahari"],
+    answer: 3
+  },
+  {
+    q: "Mengapa tumbuhan hijau disebut sebagai sumber energi bagi makhluk hidup?",
+    options: [
+      "Karena tumbuhan bisa bergerak",
+      "Karena tumbuhan menghasilkan makanan dan oksigen",
+      "Karena tumbuhan berwarna hijau",
+      "Karena tumbuhan hidup di tanah"
+    ],
+    answer: 1
+  }
+];
+
+/* ============================================================
+   STATE GAME
+   ============================================================ */
+const STAGES = [
+  { name: "Biji",       pct: 0,   emoji: "🌰" },
+  { name: "Tunas",      pct: 20,  emoji: "🌱" },
+  { name: "Tanaman Muda", pct: 40, emoji: "🌿" },
+  { name: "Berbunga",   pct: 70,  emoji: "🌸" },
+  { name: "Berbuah",    pct: 100, emoji: "🍎" }
+];
+
+let gameState = {
+  currentQ: 0,
+  growth: 0,           // 0 - 100
+  stageIndex: 0,
+  answered: false,
+  totalBadges: 0,
+  history: []          // riwayat badge
+};
+
+/* ============================================================
+   PENYIMPANAN JSON (localStorage)
+   ============================================================ */
+const STORAGE_KEY = "energiGarden_v1";
+
+function saveState() {
+  try {
+    const data = JSON.stringify({
+      totalBadges: gameState.totalBadges,
+      history: gameState.history,
+      timestamp: new Date().toISOString()
+    });
+    localStorage.setItem(STORAGE_KEY, data);
+  } catch (e) { console.warn("Gagal menyimpan:", e); }
+}
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return;
+    const data = JSON.parse(raw);
+    gameState.totalBadges = data.totalBadges || 0;
+    gameState.history = data.history || [];
+  } catch (e) { console.warn("Gagal memuat:", e); }
+}
+
+/* ============================================================
+   WEBGL CANVAS - RENDERING TANAMAN
+   ============================================================ */
+const canvas = document.getElementById("gardenCanvas");
+let gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
+let useWebGL = !!gl;
+let ctx2d = null;
+
+if (!useWebGL) {
+  // Fallback ke 2D jika WebGL tidak tersedia
+  ctx2d = canvas.getContext("2d");
+} else {
+  initWebGL();
+}
+
+function resizeCanvas() {
+  const dpr = window.devicePixelRatio || 1;
+  const rect = canvas.getBoundingClientRect();
+  canvas.width = rect.width * dpr;
+  canvas.height = rect.height * dpr;
+  if (useWebGL) {
+    gl.viewport(0, 0, canvas.width, canvas.height);
+  }
+}
+window.addEventListener("resize", resizeCanvas);
+
+/* ---------- WebGL Shader Setup ---------- */
+let program, positionBuffer, colorLocation, resolutionLocation, timeLocation;
+let glStartTime = performance.now();
+
+function initWebGL() {
+  const vsSource = `
+    attribute vec2 a_position;
+    uniform vec2 u_resolution;
+    uniform float u_time;
+    varying vec2 v_pos;
+    void main() {
+      v_pos = a_position;
+      vec2 clip = (a_position / u_resolution) * 2.0 - 1.0;
+      gl_Position = vec4(clip * vec2(1.0, -1.0), 0.0, 1.0);
+    }
+  `;
+  const fsSource = `
+    precision mediump float;
+    uniform float u_time;
+    uniform vec2 u_resolution;
+    varying vec2 v_pos;
+
+    // Fungsi pseudo-random
+    float rand(vec2 co) {
+      return fract(sin(dot(co, vec2(12.9898, 78.233))) * 43758.5453);
+    }
+
+    void main() {
+      vec2 uv = v_pos / u_resolution;
+      // Langit gradien
+      vec3 sky = mix(vec3(0.53, 0.81, 0.92), vec3(0.88, 0.96, 1.0), uv.y);
+      // Matahari
+      vec2 sunPos = vec2(0.85, 0.15);
+      float sunDist = distance(uv, sunPos);
+      float sun = smoothstep(0.12, 0.0, sunDist);
+      vec3 sunColor = vec3(1.0, 0.95, 0.6);
+      vec3 col = mix(sky, sunColor, sun);
+
+      // Rumput di bawah
+      float groundY = 0.75;
+      if (uv.y > groundY) {
+        vec3 grass = mix(vec3(0.36, 0.65, 0.28), vec3(0.22, 0.45, 0.16), (uv.y - groundY) / (1.0 - groundY));
+        // Tekstur rumput
+        float g = rand(floor(uv * vec2(80.0, 40.0)));
+        grass += (g - 0.5) * 0.05;
+        col = mix(col, grass, smoothstep(groundY - 0.01, groundY + 0.02, uv.y));
+      }
+      gl_FragColor = vec4(col, 1.0);
+    }
+  `;
+
+  program = createProgram(gl, vsSource, fsSource);
+  if (!program) { useWebGL = false; ctx2d = canvas.getContext("2d"); return; }
+
+  positionBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+
+  colorLocation = gl.getUniformLocation(program, "u_resolution");
+  timeLocation = gl.getUniformLocation(program, "u_time");
+  resolutionLocation = colorLocation;
+
+  resizeCanvas();
+  renderWebGL();
+}
+
+function createProgram(gl, vs, fs) {
+  const v = compileShader(gl, gl.VERTEX_SHADER, vs);
+  const f = compileShader(gl, gl.FRAGMENT_SHADER, fs);
+  if (!v || !f) return null;
+  const p = gl.createProgram();
+  gl.attachShader(p, v);
+  gl.attachShader(p, f);
+  gl.linkProgram(p);
+  if (!gl.getProgramParameter(p, gl.LINK_STATUS)) {
+    console.error(gl.getProgramInfoLog(p));
+    return null;
+  }
+  return p;
+}
+
+function compileShader(gl, type, src) {
+  const s = gl.createShader(type);
+  gl.shaderSource(s, src);
+  gl.compileShader(s);
+  if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) {
+    console.error(gl.getShaderInfoLog(s));
+    return null;
+  }
+  return s;
+}
+
+/* ---------- Render WebGL background + tanaman 2D overlay ---------- */
+let plantCanvas = document.createElement("canvas");
+let plantCtx = plantCanvas.getContext("2d");
+
+function renderWebGL() {
+  if (!useWebGL) return;
+  const w = canvas.width, h = canvas.height;
+
+  gl.viewport(0, 0, w, h);
+  gl.clearColor(0.53, 0.81, 0.92, 1);
+  gl.clear(gl.COLOR_BUFFER_BIT);
+
+  gl.useProgram(program);
+
+  // Fullscreen quad
+  gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+  const positions = new Float32Array([
+    0, 0,
+    w, 0,
+    0, h,
+    0, h,
+    w, 0,
+    w, h
+  ]);
+  gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW);
+
+  const posLoc = gl.getAttribLocation(program, "a_position");
+  gl.enableVertexAttribArray(posLoc);
+  gl.vertexAttribPointer(posLoc, 2, gl.FLOAT, false, 0, 0);
+
+  gl.uniform2f(resolutionLocation, w, h);
+  gl.uniform1f(timeLocation, (performance.now() - glStartTime) / 1000);
+
+  gl.drawArrays(gl.TRIANGLES, 0, 6);
+
+  // Overlay tanaman
+  drawPlantOverlay(w, h);
+
+  requestAnimationFrame(renderWebGL);
+}
+
+/* ---------- Gambar tanaman (2D overlay di atas WebGL) ---------- */
+function drawPlantOverlay(w, h) {
+  // Karena WebGL canvas hanya background, kita gambar tanaman dengan 2D
+  // Tapi canvas WebGL sudah dipakai, jadi kita perlu cara lain.
+  // Solusi: gunakan canvas terpisah untuk tanaman dan composite via CSS.
+  // Namun lebih sederhana: kita gambar langsung dengan 2D di canvas terpisah
+  // yang ditumpuk di atas WebGL.
+}
+
+/* Karena WebGL canvas tidak bisa digambar 2D, kita buat canvas overlay terpisah */
+function setupOverlay() {
+  const wrap = document.querySelector(".garden-wrap");
+  const overlay = document.createElement("canvas");
+  overlay.id = "plantOverlay";
+  overlay.style.position = "absolute";
+  overlay.style.top = "0";
+  overlay.style.left = "0";
+  overlay.style.width = "100%";
+  overlay.style.height = "100%";
+  overlay.style.pointerEvents = "none";
+  wrap.appendChild(overlay);
+
+  const dpr = window.devicePixelRatio || 1;
+  const rect = canvas.getBoundingClientRect();
+  overlay.width = rect.width * dpr;
+  overlay.height = rect.height * dpr;
+  const octx = overlay.getContext("2d");
+  octx.scale(dpr, dpr);
+
+  function draw() {
+    const w = rect.width, h = rect.height;
+    octx.clearRect(0, 0, w, h);
+    drawPlant(octx, w, h);
+    requestAnimationFrame(draw);
+  }
+  draw();
+
+  window.addEventListener("resize", () => {
+    const r = canvas.getBoundingClientRect();
+    overlay.width = r.width * dpr;
+    overlay.height = r.height * dpr;
+    octx.setTransform(1,0,0,1,0,0);
+    octx.scale(dpr, dpr);
+  });
+}
+
+/* ---------- Gambar tanaman berdasarkan growth ---------- */
+function drawPlant(c, w, h) {
+  const growth = gameState.growth; // 0-100
+  const groundY = h * 0.78;
+  const baseX = w / 2;
+  const t = performance.now() / 1000;
+
+  // Bayangan
+  c.save();
+  c.globalAlpha = 0.15;
+  c.fillStyle = "#000";
+  c.beginPath();
+  c.ellipse(baseX, groundY + 4, 30 + growth * 0.2, 8, 0, 0, Math.PI * 2);
+  c.fill();
+  c.restore();
+
+  // Tanah gundukan
+  c.fillStyle = "#6D4C41";
+  c.beginPath();
+  c.ellipse(baseX, groundY + 6, 45, 14, 0, 0, Math.PI * 2);
+  c.fill();
+  c.fillStyle = "#5D4037";
+  c.beginPath();
+  c.ellipse(baseX, groundY + 8, 38, 10, 0, 0, Math.PI * 2);
+  c.fill();
+
+  if (growth <= 5) {
+    // Biji
+    c.save();
+    c.translate(baseX, groundY - 4);
+    c.fillStyle = "#8D6E63";
+    c.beginPath();
+    c.ellipse(0, 0, 10, 13, 0, 0, Math.PI * 2);
+    c.fill();
+    c.fillStyle = "#6D4C41";
+    c.beginPath();
+    c.ellipse(-2, -2, 4, 5, 0, 0, Math.PI * 2);
+    c.fill();
+    c.restore();
+    return;
+  }
+
+  // Batang
+  const stemH = (growth / 100) * (h * 0.5);
+  const stemW = 3 + (growth / 100) * 5;
+  const sway = Math.sin(t * 1.5) * (growth / 100) * 3;
+
+  c.strokeStyle = "#4CAF50";
+  c.lineWidth = stemW;
+  c.lineCap = "round";
+  c.beginPath();
+  c.moveTo(baseX, groundY);
+  c.quadraticCurveTo(baseX + sway * 0.5, groundY - stemH * 0.5, baseX + sway, groundY - stemH);
+  c.stroke();
+
+  // Daun
+  const leafCount = Math.min(6, Math.floor(growth / 18));
+  for (let i = 0; i < leafCount; i++) {
+    const ly = groundY - (stemH * (i + 1) / (leafCount + 1));
+    const lx = baseX + sway * ((i + 1) / (leafCount + 1));
+    const side = i % 2 === 0 ? 1 : -1;
+    const leafSize = 10 + (growth / 100) * 14;
+    c.save();
+    c.translate(lx, ly);
+    c.rotate(side * 0.5 + Math.sin(t + i) * 0.1);
+    c.fillStyle = i % 3 === 0 ? "#66BB6A" : "#43A047";
+    c.beginPath();
+    c.ellipse(side * leafSize * 0.6, 0, leafSize, leafSize * 0.45, side * 0.3, 0, Math.PI * 2);
+    c.fill();
+    // Tulang daun
+    c.strokeStyle = "#2E7D32";
+    c.lineWidth = 1;
+    c.beginPath();
+    c.moveTo(0, 0);
+    c.lineTo(side * leafSize * 1.1, 0);
+    c.stroke();
+    c.restore();
+  }
+
+  // Bunga (growth >= 70)
+  if (growth >= 70) {
+    const flowerY = groundY - stemH;
+    const flowerX = baseX + sway;
+    const bloom = Math.min(1, (growth - 70) / 30);
+    const petalCount = 6;
+    c.save();
+    c.translate(flowerX, flowerY);
+    for (let i = 0; i < petalCount; i++) {
+      const angle = (i / petalCount) * Math.PI * 2 + Math.sin(t * 0.5) * 0.05;
+      c.save();
+      c.rotate(angle);
+      c.fillStyle = "#F48FB1";
+      c.beginPath();
+      c.ellipse(0, -10 * bloom, 7 * bloom, 12 * bloom, 0, 0, Math.PI * 2);
+      c.fill();
+      c.restore();
+    }
+    // Pusat bunga
+    c.fillStyle = "#FFD54F";
+    c.beginPath();
+    c.arc(0, 0, 6 * bloom, 0, Math.PI * 2);
+    c.fill();
+    c.restore();
+  }
+
+  // Buah (growth >= 95)
+  if (growth >= 95) {
+    const fruitY = groundY - stemH * 0.6;
+    const fruitX = baseX + sway * 0.6;
+    c.save();
+    c.translate(fruitX + 14, fruitY);
+    c.fillStyle = "#E53935";
+    c.beginPath();
+    c.arc(0, 0, 8, 0, Math.PI * 2);
+    c.fill();
+    c.fillStyle = "#C62828";
+    c.beginPath();
+    c.arc(3, -2, 3, 0, Math.PI * 2);
+    c.fill();
+    // Tangkai
+    c.strokeStyle = "#4CAF50";
+    c.lineWidth = 2;
+    c.beginPath();
+    c.moveTo(0, -8);
+    c.lineTo(2, -12);
+    c.stroke();
+    c.restore();
+  }
+}
+
+/* ============================================================
+   GAME LOGIC
+   ============================================================ */
+const qNumberEl = document.getElementById("qNumber");
+const qTextEl = document.getElementById("qText");
+const optionsEl = document.getElementById("options");
+const feedbackEl = document.getElementById("feedback");
+const progressFill = document.getElementById("progressFill");
+const progressPct = document.getElementById("progressPct");
+const stageLabel = document.getElementById("stageLabel");
+const badgeCountEl = document.getElementById("badgeCount");
+const badgeCollectionEl = document.getElementById("badgeCollection");
+const modalOverlay = document.getElementById("modalOverlay");
+const modalEmoji = document.getElementById("modalEmoji");
+const modalTitle = document.getElementById("modalTitle");
+const modalDesc = document.getElementById("modalDesc");
+const modalBtn = document.getElementById("modalBtn");
+
+function updateStage() {
+  const g = gameState.growth;
+  let idx = 0;
+  for (let i = STAGES.length - 1; i >= 0; i--) {
+    if (g >= STAGES[i].pct) { idx = i; break; }
+  }
+  gameState.stageIndex = idx;
+  stageLabel.textContent = `Tahap ${idx + 1}: ${STAGES[idx].name} ${STAGES[idx].emoji}`;
+  progressFill.style.width = g + "%";
+  progressPct.textContent = Math.round(g) + "%";
+}
+
+function renderQuestion() {
+  const q = QUESTIONS[gameState.currentQ];
+  qNumberEl.textContent = `Soal ${gameState.currentQ + 1} dari ${QUESTIONS.length}`;
+  qTextEl.textContent = q.q;
+  optionsEl.innerHTML = "";
+  feedbackEl.className = "feedback";
+  feedbackEl.textContent = "";
+  gameState.answered = false;
+
+  const letters = ["A", "B", "C", "D"];
+  q.options.forEach((opt, i) => {
+    const btn = document.createElement("button");
+    btn.className = "option-btn";
+    btn.innerHTML = `<span class="option-letter">${letters[i]}</span><span>${opt}</span>`;
+    btn.addEventListener("click", () => handleAnswer(i, btn));
+    optionsEl.appendChild(btn);
+  });
+}
+
+function handleAnswer(index, btn) {
+  if (gameState.answered) return;
+  gameState.answered = true;
+
+  const q = QUESTIONS[gameState.currentQ];
+  const allBtns = optionsEl.querySelectorAll(".option-btn");
+  allBtns.forEach(b => b.disabled = true);
+
+  if (index === q.answer) {
+    btn.classList.add("correct");
+    feedbackEl.className = "feedback show good";
+    feedbackEl.textContent = "✅ Benar! Tanamanmu tumbuh! 🌱";
+    // Naikkan growth
+    gameState.growth = Math.min(100, gameState.growth + 20);
+    updateStage();
+
+    setTimeout(() => {
+      if (gameState.currentQ < QUESTIONS.length - 1) {
+        gameState.currentQ++;
+        renderQuestion();
+      } else {
+        // Selesai semua soal
+        finishGame();
+      }
+    }, 1200);
+  } else {
+    btn.classList.add("wrong");
+    allBtns[q.answer].classList.add("correct");
+    feedbackEl.className = "feedback show bad";
+    feedbackEl.textContent = "❌ Salah! Tanaman tidak tumbuh. Coba lagi ya!";
+    // Reset growth ke 0
+    setTimeout(() => {
+      resetGame();
+    }, 1500);
+  }
+}
+
+function finishGame() {
+  // Pastikan growth 100
+  gameState.growth = 100;
+  updateStage();
+
+  // Beri badge
+  gameState.totalBadges++;
+  gameState.history.push({
+    date: new Date().toISOString(),
+    badge: "Tanaman Berbuah",
+    emoji: "🍎"
+  });
+  saveState();
+  updateBadgeUI();
+
+  // Tampilkan modal
+ 
